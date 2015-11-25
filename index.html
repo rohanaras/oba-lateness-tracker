@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Lateness Tracker</title>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css"/>
+        <link rel="stylesheet" href="css/main.css"/>
+        <!--<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.7/angular.min.js"></script>-->
+        <script src="//d3js.org/d3.v3.min.js" charset="utf-8"></script>
+        <script src="//d3js.org/topojson.v1.min.js"></script>
+        <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+        <!--<script src="js/app.js"></script>-->
+    </head>
+    <body>
+        <div class="container">
+            <form id="choose-route-form">
+                <div class="inline-form-group">
+                    <label for="routeNum">Enter a Route Number: </label>
+                    <input type="number" id="routeNum" name="routeNum" value="48" autofocus/>
+                </div>
+                <div class="inline-form-group">
+                    <button type="submit" class="btn btn-primary">Choose Bus</button>
+                </div>
+            </form>
+
+            <script type="text/javascript">
+                var path = d3.geo.path().projection(d3.geo.mercator());
+                var w = 500;
+                var h = 300;
+                var svg = d3.select('.container')
+                        .append('svg')
+                        .attr("width", w)
+                        .attr("height", h);
+                console.log('test 1 test');
+                d3.json("lib/kcblock2.topojson", function(error, blocks) {
+                    if (error) throw error;
+                    console.log('census block geojson loaded 2');
+                    console.log(blocks.objects);
+                    svg.append("path")
+                            .datum(topojson.feature(blocks, blocks.objects.kcblock))
+                            .attr("d", path);
+
+                });
+                console.log('test 2 test');
+            </script>
+        </div>
+    </body>
+</html>
