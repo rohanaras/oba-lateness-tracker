@@ -26,8 +26,8 @@
             height = 500;
 
     var projection = d3.geo.mercator()
-            .scale(10)
-            .translate([width / 2, height / 2]);
+            .scale(10);
+            //.translate([width / 2, height / 2]);
 
     var path = d3.geo.path().projection(projection);
 
@@ -40,7 +40,7 @@
         console.log(data);
         var rcensusBlocks = Object.keys(data);
         console.log(rcensusBlocks);
-        d3.json("lib/kcblock3.json", function(error, topology) {
+        d3.json("lib/king10bg.json", function(error, topology) {
             if (error) throw error;
 
 //            var sTopojson = topology;
@@ -52,10 +52,14 @@
 //
 //            console.log(sTopojson);
 
-            svg.append("path")
-                .datum(topojson.feature(topology, topology.objects.kcblock))
+            console.log(topology);
+
+            svg.append("g")
+                .selectAll("path")
+                .data(topojson.feature(topology, topology.objects.king10bg).features)
+                .enter().append("path")
+                .attr("class", "county-boundary")
                 .attr("d", path)
-                .attr("class", "county-boundary");
         });
     });
 

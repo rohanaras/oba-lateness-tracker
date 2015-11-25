@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+    .tract {
+        fill: #ccc;
+    }
+    .tract:hover {
+        fill: orange;
+    }
+    .tract-border {
+        fill: none;
+        stroke: #333;
+        stroke-linejoin: round;
+        stroke-linecap: round;
+    }
+</style>
+<body>
+<script src="//d3js.org/d3.v3.min.js"></script>
+<script src="//d3js.org/topojson.v1.min.js"></script>
+<script>
+    var width = 960;
+    var height = 600;
+    var vis = d3.select("body").append("svg")
+            .attr("width", width).attr("height", height);
+
+    d3.json("lib/king10ct.geojson", function(json) {
+        // create a first guess for the projection
+        var center = d3.geo.centroid(json);
+        var scale  = 150;
+        var offset = [width/2, height/2];
+        var projection = d3.geo.mercator().scale(scale).center(center)
+                .translate(offset);
+
+        // create the path
+        var path = d3.geo.path().projection(projection);
+
+        // using the path determine the bounds of the current map and use
+        // these to determine better values for the scale and translation
+        var bounds  = path.bounds(json);
+        var hscale  = scale*width  / (bounds[1][0] - bounds[0][0]);
+        var vscale  = scale*height / (bounds[1][1] - bounds[0][1]);
+        scale   = (hscale < vscale) ? hscale : vscale;
+        offset  = [width - (bounds[0][0] + bounds[1][0])/2,
+            height - (bounds[0][1] + bounds[1][1])/2];
+
+        // new projection
+        projection = d3.geo.mercator().center(center)
+                .scale(scale).translate(offset);
+        path = path.projection(projection);
+
+        // add a rectangle to see the bound of the svg
+        vis.append("rect").attr('width', width).attr('height', height)
+                .style('stroke', 'black').style('fill', 'none');
+
+        vis.selectAll("path").data(json.features).enter().append("path")
+                .attr("d", path)
+                .style("fill", "red")
+                .style("stroke-width", "1")
+                .style("stroke", "black");
+
+//        var tracts = json.objects.tracts;
+//        // strip water counties
+//        tracts.geometries = tracts.geometries
+//                .filter(function(d) { return (d.id / 10000 | 0) !== 99; });
+//        vis.append("g")
+//                .selectAll("path")
+//                .data(topojson.feature(json, tracts).features)
+//                .enter().append("path")
+//                .attr("class", "tract")
+//                .attr("d", path)
+//                .append("title")
+//                .text(function(d, i) { return d.id; });
+//        vis.append("path")
+//                .attr("class", "tract-border")
+//                .datum(topojson.mesh(ny, tracts, function(a, b) { return a !== b; }))
+//                .attr("d", path);
+    });
+</script>
