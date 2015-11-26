@@ -1,78 +1,98 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
-<style>
-    .tract {
-        fill: #ccc;
-    }
-    .tract:hover {
-        fill: orange;
-    }
-    .tract-border {
-        fill: none;
-        stroke: #333;
-        stroke-linejoin: round;
-        stroke-linecap: round;
-    }
-</style>
 <body>
 <script src="//d3js.org/d3.v3.min.js"></script>
+<script type="text/javascript" src="http://d3js.org/queue.v1.min.js"></script>
 <script src="//d3js.org/topojson.v1.min.js"></script>
 <script>
-    var width = 960;
-    var height = 600;
+    'use strict';
+
+    var width = 1500;
+    var height = 1000;
     var vis = d3.select("body").append("svg")
             .attr("width", width).attr("height", height);
 
-    d3.json("lib/king10ct.geojson", function(json) {
-        // create a first guess for the projection
+    queue().defer(d3.json, "lib/kcblock.geojson")
+            .defer(d3.json, "lib/optimizedData.json")
+            .await(ready);
+
+    function ready(error, json, data) {
+        if (error) throw error;
+
+        console.log(data);
+
+//        // create a first guess for the projection
         var center = d3.geo.centroid(json);
-        var scale  = 150;
-        var offset = [width/2, height/2];
-        var projection = d3.geo.mercator().scale(scale).center(center)
-                .translate(offset);
-
-        // create the path
-        var path = d3.geo.path().projection(projection);
-
-        // using the path determine the bounds of the current map and use
-        // these to determine better values for the scale and translation
-        var bounds  = path.bounds(json);
-        var hscale  = scale*width  / (bounds[1][0] - bounds[0][0]);
-        var vscale  = scale*height / (bounds[1][1] - bounds[0][1]);
-        scale   = (hscale < vscale) ? hscale : vscale;
-        offset  = [width - (bounds[0][0] + bounds[1][0])/2,
-            height - (bounds[0][1] + bounds[1][1])/2];
+//        var scale = 150;
+//        var offset = [width / 2, height / 2];
+//        var projection = d3.geo.mercator().scale(scale).center(center)
+//                .translate(offset);
+//
+//        // create the path
+//        var path = d3.geo.path().projection(projection);
+//
+//        // using the path determine the bounds of the current map and use
+//        // these to determine better values for the scale and translation
+//        var bounds = path.bounds(json);
+//        var hscale = scale * width / (bounds[1][0] - bounds[0][0]);
+//        var vscale = scale * height / (bounds[1][1] - bounds[0][1]);
+//        scale = (hscale < vscale) ? hscale : vscale;
+//        offset = [width - (bounds[0][0] + bounds[1][0]) / 2,
+//            height - (bounds[0][1] + bounds[1][1]) / 2];
+//
+//        console.log(scale);
+//        console.log(offset);
+        var scale = 75000;
+        var offset = [1149.9661625719302, 499.6246708768954];
 
         // new projection
-        projection = d3.geo.mercator().center(center)
-                .scale(scale).translate(offset);
-        path = path.projection(projection);
-
-        // add a rectangle to see the bound of the svg
-        vis.append("rect").attr('width', width).attr('height', height)
-                .style('stroke', 'black').style('fill', 'none');
+        var projection = d3.geo.mercator().center(center)
+                .scale(scale).translate(offset).rotate([0,0,90]);
+        var path = d3.geo.path().projection(projection);
 
         vis.selectAll("path").data(json.features).enter().append("path")
                 .attr("d", path)
-                .style("fill", "red")
-                .style("stroke-width", "1")
-                .style("stroke", "black");
+                .style("fill", function (d) {
+                            //console.log(d.properties);
+                            return getLate(d.properties.GEOID10);
+                            //return "white";
+                        })
+                .style("stroke-width", "0.2")
+                .style("stroke", "grey");
 
-//        var tracts = json.objects.tracts;
-//        // strip water counties
-//        tracts.geometries = tracts.geometries
-//                .filter(function(d) { return (d.id / 10000 | 0) !== 99; });
-//        vis.append("g")
-//                .selectAll("path")
-//                .data(topojson.feature(json, tracts).features)
-//                .enter().append("path")
-//                .attr("class", "tract")
-//                .attr("d", path)
-//                .append("title")
-//                .text(function(d, i) { return d.id; });
-//        vis.append("path")
-//                .attr("class", "tract-border")
-//                .datum(topojson.mesh(ny, tracts, function(a, b) { return a !== b; }))
-//                .attr("d", path);
-    });
+        function getLate(geoID) {
+            //console.log(typeof(geoID));
+            if (!(geoID in data)) return "#FFF";
+            var delay = null;
+            data[geoID].forEach(function (d) {
+                if (d.hour === 17   ) {
+                    var components = d.avg_delay.split(':');
+                    var hours = parseInt(components[0]);
+                    var minutes = parseInt(components[1]);
+                    var seconds = parseInt(components[2]);
+                    if (hours > 0) minutes = 60;
+                    if (seconds >= 30) minutes += 1;
+                    delay = minutes;
+                }
+            });
+            if (delay === null) return "#FFF";
+            else if (delay > 10) {
+                return "#ff1300"
+            } else if (delay > 8) {
+                return "#ff4e40"
+            } else if (delay > 6) {
+                return "#ff7d73"
+            } else if (delay > 4) {
+                return "#ffba00"
+            } else if (delay > 2) {
+                return "#ffcb40"
+            } else if (delay < 0) {
+                return "#00BFFF";
+            }
+            return "#009900";
+            var bwah =["#00BFFF", "#adfcad", "#ffcb40", "#ffba00", "#ff7d73", "#ff4e40", "#ff1300", '#000'];
+        }
+    }
+
+
 </script>
