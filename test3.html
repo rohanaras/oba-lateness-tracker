@@ -1,71 +1,75 @@
 <!DOCTYPE html>
-<meta charset="utf-8">
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Lateness Tracker</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="css/main.css"/>
+</head>
 <body>
-<script src="//d3js.org/d3.v3.min.js"></script>
-<script type="text/javascript" src="http://d3js.org/queue.v1.min.js"></script>
-<script src="//d3js.org/topojson.v1.min.js"></script>
-<script>
-    'use strict';
+    <form action="" class="form-inline" onsubmit="changeHour()">
+        <div class="form-group" id="choose-hour">
+            <label for="hourInp">Choose Hour: </label>
+            <input type="number" class="form-control" id="hourInp"/>
+        </div>
+        <button type="submit" class="btn btn-default">Enter</button>
+    </form>
 
-    var width = 1500;
-    var height = 1000;
-    var vis = d3.select("body").append("svg")
-            .attr("width", width).attr("height", height);
+    <script src="//d3js.org/d3.v3.min.js"></script>
+    <script type="text/javascript" src="http://d3js.org/queue.v1.min.js"></script>
+    <script>
+        'use strict';
 
-    queue().defer(d3.json, "lib/kcblock.geojson")
-            .defer(d3.json, "lib/optimizedData.json")
-            .await(ready);
+        var data;
 
-    function ready(error, json, data) {
-        if (error) throw error;
+        var width = 1500;
+        var height = 1000;
+        var vis = d3.select("body").append("svg")
+                .attr("width", width).attr("height", height);
 
-        console.log(data);
+        queue().defer(d3.json, "lib/kcblock.geojson")
+                .defer(d3.json, "lib/optimizedData.json")
+                .await(ready);
 
-//        // create a first guess for the projection
-        var center = d3.geo.centroid(json);
-//        var scale = 150;
-//        var offset = [width / 2, height / 2];
-//        var projection = d3.geo.mercator().scale(scale).center(center)
-//                .translate(offset);
-//
-//        // create the path
-//        var path = d3.geo.path().projection(projection);
-//
-//        // using the path determine the bounds of the current map and use
-//        // these to determine better values for the scale and translation
-//        var bounds = path.bounds(json);
-//        var hscale = scale * width / (bounds[1][0] - bounds[0][0]);
-//        var vscale = scale * height / (bounds[1][1] - bounds[0][1]);
-//        scale = (hscale < vscale) ? hscale : vscale;
-//        offset = [width - (bounds[0][0] + bounds[1][0]) / 2,
-//            height - (bounds[0][1] + bounds[1][1]) / 2];
-//
-//        console.log(scale);
-//        console.log(offset);
-        var scale = 75000;
-        var offset = [1149.9661625719302, 499.6246708768954];
+        function ready(error, geojson, busData) {
+            if (error) throw error;
 
-        // new projection
-        var projection = d3.geo.mercator().center(center)
-                .scale(scale).translate(offset).rotate([0,0,90]);
-        var path = d3.geo.path().projection(projection);
+            console.log(busData);
+            data = busData;
 
-        vis.selectAll("path").data(json.features).enter().append("path")
-                .attr("d", path)
-                .style("fill", function (d) {
-                            //console.log(d.properties);
-                            return getLate(d.properties.GEOID10);
-                            //return "white";
-                        })
-                .style("stroke-width", "0.2")
-                .style("stroke", "grey");
+            var center = d3.geo.centroid(geojson);
 
-        function getLate(geoID) {
+            var scale = 75000;
+            var offset = [1149.9661625719302, 499.6246708768954];
+
+            // new projection
+            var projection = d3.geo.mercator().center(center)
+                    .scale(scale).translate(offset).rotate([0,0,0]);
+            var path = d3.geo.path().projection(projection);
+
+            vis.selectAll("path").data(geojson.features).enter().append("path")
+                    .attr("d", path)
+                    .style("fill", function (d) {
+                                //console.log(d.properties);
+                                return getLate(d.properties.GEOID10, 3);
+                                //return "white";
+                            })
+                    .style("stroke-width", "0.2")
+                    .style("stroke", "grey");
+        }
+
+        function changeHour(hour) {
+            vis.selectAll("path").style("fill", function (d) {
+                return getLate(d.properties.GEOID10, hour);
+            })
+        }
+
+        function getLate(geoID, hour) {
             //console.log(typeof(geoID));
             if (!(geoID in data)) return "#FFF";
             var delay = null;
             data[geoID].forEach(function (d) {
-                if (d.hour === 17   ) {
+                if (d.hour === hour   ) {
                     var components = d.avg_delay.split(':');
                     var hours = parseInt(components[0]);
                     var minutes = parseInt(components[1]);
@@ -90,9 +94,11 @@
                 return "#00BFFF";
             }
             return "#009900";
-            var bwah =["#00BFFF", "#adfcad", "#ffcb40", "#ffba00", "#ff7d73", "#ff4e40", "#ff1300", '#000'];
         }
-    }
+        $("#prospects_form").submit(function(e) {
+            e.preventDefault();
+        });
 
-
-</script>
+    </script>
+</body>
+</html>
