@@ -3,46 +3,22 @@
     <head>
         <meta charset="UTF-8">
         <title>Lateness Tracker</title>
-        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css"/>
         <link rel="stylesheet" href="css/main.css"/>
-        <!--<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.7/angular.min.js"></script>-->
-        <script src="//d3js.org/d3.v3.min.js" charset="utf-8"></script>
-        <script src="//d3js.org/topojson.v1.min.js"></script>
-        <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
-        <!--<script src="js/app.js"></script>-->
     </head>
     <body>
         <div class="container">
-            <form id="choose-route-form">
-                <div class="inline-form-group">
-                    <label for="routeNum">Enter a Route Number: </label>
-                    <input type="number" id="routeNum" name="routeNum" value="48" autofocus/>
-                </div>
-                <div class="inline-form-group">
-                    <button type="submit" class="btn btn-primary">Choose Bus</button>
-                </div>
-            </form>
+            <h1>A OneBusAway Visualization</h1>
+            <p>
+                For INFO 370 (Intro to Data Science), my team collected King County Metro system wide data for five days from the <a href="http://developer.onebusaway.org/modules/onebusaway-application-modules/1.1.13/api/where/index.html">OneBusAway API</a>. Our intent was to see if we could <a href="https://github.com/rohanaras/BBT_team">uncover predictors for bus lateness</a>.
+            </p>
+            <p>
+                Along the way we created a couple of visualisations, including one that mapped average lateness per stop for a given hour of the day. Except we didn't end up plotting individual stops since the Google Maps tool that we were using couldn't effectively plot each stop. So we decided to aggregate by census blocks and plot in a sort of choropleth map instead. However... the API we used to generate the shapefiles only gave the max and min lat/lon values. You can see the result of this <a href="http://students.washington.edu/rohana/bbt/CensusBlockViz/">here</a>.
+            </p>
+            <p>
+                In attempting to learn d3, I decided to remake this visualization. This time using the correct shapefiles.
+            </p>
 
-            <script type="text/javascript">
-                var path = d3.geo.path().projection(d3.geo.mercator());
-                var w = 500;
-                var h = 300;
-                var svg = d3.select('.container')
-                        .append('svg')
-                        .attr("width", w)
-                        .attr("height", h);
-                console.log('test 1 test');
-                d3.json("lib/kcblock2.topojson", function(error, blocks) {
-                    if (error) throw error;
-                    console.log('census block geojson loaded 2');
-                    console.log(blocks.objects);
-                    svg.append("path")
-                            .datum(topojson.feature(blocks, blocks.objects.kcblock))
-                            .attr("d", path);
-
-                });
-                console.log('test 2 test');
-            </script>
+            <h3 id="link"><a href="visualization.html">View the visualization</a></h3>
         </div>
     </body>
 </html>

@@ -3,17 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <title>Lateness Tracker</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css"/>
     <link rel="stylesheet" href="css/main.css"/>
 </head>
 <body>
-    <form action="" class="form-inline" onsubmit="changeHour()">
-        <div class="form-group" id="choose-hour">
-            <label for="hourInp">Choose Hour: </label>
-            <input type="number" class="form-control" id="hourInp"/>
-        </div>
-        <button type="submit" class="btn btn-default">Enter</button>
-    </form>
+    <nav>
+        <ul>
+            <li>
+                <p id="hour">3</p>
+            </li>
+            <li>
+                <input name="decrementButton"
+                       type="button"
+                       value="Decrement Hour"
+                       class="btn btn-default"
+                       onclick="decrementHour()" />
+            </li>
+            <li>
+                <input name="incrementButton"
+                       type="button"
+                       value="Increment Hour"
+                       class="btn btn-default"
+                       onclick="incrementHour()" />
+            </li>
+            <li>
+                <a href="index.html">Back to explanation</a>
+            </li>
+        </ul>
+    </nav>
 
     <script src="//d3js.org/d3.v3.min.js"></script>
     <script type="text/javascript" src="http://d3js.org/queue.v1.min.js"></script>
@@ -21,6 +37,7 @@
         'use strict';
 
         var data;
+        var currentHour = 3;
 
         var width = 1500;
         var height = 1000;
@@ -51,17 +68,37 @@
                     .attr("d", path)
                     .style("fill", function (d) {
                                 //console.log(d.properties);
-                                return getLate(d.properties.GEOID10, 3);
+                                return getLate(d.properties.GEOID10, currentHour);
                                 //return "white";
                             })
                     .style("stroke-width", "0.2")
                     .style("stroke", "grey");
         }
 
-        function changeHour(hour) {
+        function incrementHour() {
+            if (currentHour >= 23) {
+                currentHour = 0
+            } else {
+                currentHour++;
+            }
+
             vis.selectAll("path").style("fill", function (d) {
-                return getLate(d.properties.GEOID10, hour);
-            })
+                return getLate(d.properties.GEOID10, currentHour);
+            });
+            d3.select("#hour").text(currentHour);
+        }
+
+        function decrementHour() {
+            if (currentHour <= 0) {
+                currentHour = 23
+            } else {
+                currentHour--;
+            }
+
+            vis.selectAll("path").style("fill", function (d) {
+                return getLate(d.properties.GEOID10, currentHour);
+            });
+            d3.select("#hour").text(currentHour);
         }
 
         function getLate(geoID, hour) {
@@ -95,9 +132,6 @@
             }
             return "#009900";
         }
-        $("#prospects_form").submit(function(e) {
-            e.preventDefault();
-        });
 
     </script>
 </body>
